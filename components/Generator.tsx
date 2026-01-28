@@ -8,7 +8,7 @@ import { fileToBase64 } from '../utils/fileUtils';
 
 interface GeneratorProps {
   onImageGenerated: (image: GeneratedImage) => void;
-  hfToken: string;
+  apiKey: string;
 }
 
 const UploadIcon = () => (
@@ -29,7 +29,7 @@ const LoadingSpinner = () => (
 );
 
 
-export const Generator: React.FC<GeneratorProps> = ({ onImageGenerated, hfToken }) => {
+export const Generator: React.FC<GeneratorProps> = ({ onImageGenerated, apiKey }) => {
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<CategoryOption | null>(null);
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
@@ -64,7 +64,7 @@ export const Generator: React.FC<GeneratorProps> = ({ onImageGenerated, hfToken 
 
     try {
       const { mimeType, data } = extractBase64Parts(uploadedImage);
-      const { base64: newImageBase64, mimeType: newMimeType } = await generateImage(data, category.prompt, mimeType, hfToken);
+      const { base64: newImageBase64, mimeType: newMimeType } = await generateImage(data, category.prompt, mimeType, apiKey);
       const newImageUrl = `data:${newMimeType};base64,${newImageBase64}`;
       setGeneratedImageUrl(newImageUrl);
       onImageGenerated({
@@ -79,7 +79,7 @@ export const Generator: React.FC<GeneratorProps> = ({ onImageGenerated, hfToken 
     } finally {
       setIsGenerating(false);
     }
-  }, [uploadedImage, onImageGenerated, hfToken]);
+  }, [uploadedImage, onImageGenerated, apiKey]);
   
   const extractBase64Parts = (base64String: string) => {
     const match = base64String.match(/^data:(image\/[a-z]+);base64,(.*)$/);

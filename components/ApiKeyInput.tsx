@@ -11,11 +11,11 @@ export const ApiKeyInput: React.FC<ApiKeyInputProps> = ({ onKeySubmit }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (apiKey.trim().startsWith('hf_')) {
+    if (apiKey.trim().length > 10) { // Basic validation for API key format
       onKeySubmit(apiKey.trim());
       setError('');
     } else {
-      setError('Please enter a valid Hugging Face token (it should start with "hf_").');
+      setError('Please enter a valid API key.');
     }
   };
 
@@ -24,15 +24,15 @@ export const ApiKeyInput: React.FC<ApiKeyInputProps> = ({ onKeySubmit }) => {
       <div className="w-full max-w-md text-center">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">Enter Your API Key</h2>
         <p className="text-gray-600 mb-6">
-          To use this AI, please provide your Hugging Face API token. 
-          You can get one for free from the{' '}
+          To use this AI, please provide your Google Gemini API key. 
+          You can get one for free from{' '}
           <a
-            href="https://huggingface.co/settings/tokens"
+            href="https://aistudio.google.com/app/apikey"
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-600 hover:underline"
           >
-            Hugging Face website
+            Google AI Studio
           </a>.
         </p>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -40,9 +40,9 @@ export const ApiKeyInput: React.FC<ApiKeyInputProps> = ({ onKeySubmit }) => {
             type="password"
             value={apiKey}
             onChange={(e) => setApiKey(e.target.value)}
-            placeholder="hf_..."
+            placeholder="Enter your Google Gemini API key"
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            aria-label="Hugging Face API Key"
+            aria-label="Google Gemini API Key"
           />
           {error && <p className="text-red-500 text-sm">{error}</p>}
           <button

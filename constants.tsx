@@ -8,31 +8,31 @@ export const CATEGORIES: CategoryOption[] = [
     id: Category.Strong,
     name: 'Really Strong',
     icon: <span role="img" aria-label="muscle" className="text-3xl">💪</span>,
-    prompt: 'Transform the person in this portrait to look incredibly muscular and strong, like a professional bodybuilder or a superhero. Enhance muscle definition, size, and overall physical power.'
+    prompt: "Transform the person in this photo to have a very muscular and strong physique, like a professional bodybuilder. The final image should be photorealistic. It is very important to maintain the original person's facial features, hair, and expression to ensure they are still recognizable."
   },
   {
     id: Category.Overweight,
     name: 'Overweight',
     icon: <span role="img" aria-label="burger" className="text-3xl">🍔</span>,
-    prompt: 'Modify this portrait to make the person appear significantly overweight. Add features like a double chin, fuller cheeks, and a larger body frame in a realistic manner.'
+    prompt: "Realistically alter the body of the person in this photo to appear significantly overweight. The style should be photorealistic. Please preserve the person's original facial identity, hair, and core features, ensuring they remain clearly recognizable, even with natural-looking changes in facial fullness."
   },
   {
     id: Category.Princess,
     name: 'A Princess',
     icon: <span role="img" aria-label="crown" className="text-3xl">👑</span>,
-    prompt: 'Reimagine the person in this photo as a fairytale princess. Give them elegant royal attire, a tiara, and a majestic, enchanting background like a castle or a magical forest.'
+    prompt: "Reimagine the person in this photo as a photorealistic fairytale princess. Dress them in elegant royal attire and add a beautiful tiara. The background should be a majestic, enchanting setting like a castle. It is essential to keep the person's original face, hair, and expression perfectly intact, so they are instantly recognizable."
   },
   {
     id: Category.Animal,
     name: 'An Animal',
     icon: <span role="img" aria-label="dog" className="text-3xl">🐶</span>,
-    prompt: 'Creatively merge the person in this portrait with their noble spirit animal, creating a beautiful and artistic human-animal hybrid. The result should be elegant and powerful.'
+    prompt: "Artistically and subtly merge the person in this portrait with features of a noble animal (such as a lion or a wolf). The result should be a powerful, elegant, and photorealistic hybrid. It is crucial that the person's core facial identity, especially their eyes and recognizable features, are preserved."
   },
   {
     id: Category.Rich,
     name: 'Rich',
     icon: <span role="img" aria-label="gem" className="text-3xl">💎</span>,
-    prompt: 'Make the person in this photo look extremely wealthy and luxurious. Place them in an opulent setting, dress them in designer clothes, and add accessories like expensive jewelry.'
+    prompt: "Transform the person in this photo to look extremely wealthy in a photorealistic style. Edit their clothing to be high-end and designer, add tasteful luxury accessories, and place them in an opulent setting like a modern penthouse. It is absolutely essential to keep their face, hair, and expression identical to the original photo, ensuring they remain perfectly recognizable."
   },
 ];
 

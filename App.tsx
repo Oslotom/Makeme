@@ -7,18 +7,18 @@ import { ApiKeyInput } from './components/ApiKeyInput';
 import type { GeneratedImage } from './types';
 import { MOCK_IMAGES } from './constants';
 
-const API_KEY_STORAGE_KEY = 'hfToken';
+const API_KEY_STORAGE_KEY = 'geminiApiKey';
 
 const App: React.FC = () => {
   const [galleryImages, setGalleryImages] = useState<GeneratedImage[]>(MOCK_IMAGES);
-  const [hfToken, setHfToken] = useState<string | null>(null);
+  const [apiKey, setApiKey] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     try {
       const storedToken = localStorage.getItem(API_KEY_STORAGE_KEY);
       if (storedToken) {
-        setHfToken(storedToken);
+        setApiKey(storedToken);
       }
     } catch (error) {
       console.error("Could not access localStorage:", error);
@@ -29,7 +29,7 @@ const App: React.FC = () => {
   const handleKeySubmit = useCallback((token: string) => {
     try {
       localStorage.setItem(API_KEY_STORAGE_KEY, token);
-      setHfToken(token);
+      setApiKey(token);
     } catch (error) {
       console.error("Could not save to localStorage:", error);
     }
@@ -38,7 +38,7 @@ const App: React.FC = () => {
   const handleClearKey = useCallback(() => {
     try {
       localStorage.removeItem(API_KEY_STORAGE_KEY);
-      setHfToken(null);
+      setApiKey(null);
     } catch (error) {
       console.error("Could not remove from localStorage:", error);
     }
@@ -54,13 +54,13 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-gray-800">
-      <Header hfToken={hfToken} onClearKey={handleClearKey} />
+      <Header apiKey={apiKey} onClearKey={handleClearKey} />
       <main className="container mx-auto px-4 py-8 md:py-12">
-        {!hfToken ? (
+        {!apiKey ? (
           <ApiKeyInput onKeySubmit={handleKeySubmit} />
         ) : (
           <>
-            <Generator onImageGenerated={addImageToGallery} hfToken={hfToken} />
+            <Generator onImageGenerated={addImageToGallery} apiKey={apiKey} />
             <div className="my-16 md:my-24 border-t border-gray-200"></div>
             <Gallery images={galleryImages} />
           </>

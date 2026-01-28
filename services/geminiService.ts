@@ -1,79 +1,75 @@
 
-import { base64ToBlob } from '../utils/fileUtils';
-
-// Using a CORS proxy to bypass browser security restrictions (CORS) 
-// that prevent direct calls to the Hugging Face API from a web app.
-// NOTE: Free CORS proxies are notoriously unreliable and can stop working at any time. 
-// This is a common point of failure in client-side-only applications.
-const CORS_PROXY = "https://corsproxy.io/?";
-const API_URL = `${CORS_PROXY}https://api-inference.huggingface.co/models/timbrooks/instruct-pix2pix`;
+import { GoogleGenAI } from "@google/genai";
 
 /**
- * Generates an image by calling the Hugging Face Inference API for the instruct-pix2pix model.
- * NOTE: The filename is kept as geminiService.ts to minimize changes, but it no longer uses Gemini.
+ * Generates an image by calling the Google Gemini API.
  * @param base64ImageData The raw base64 image data, without the 'data:image/...' prefix.
  * @param prompt The instruction for how to edit the image.
- * @param mimeType The MIME type of the input image (e.g., 'image/jpeg').
- * @param hfToken The Hugging Face API token.
+ * @param mimeType The MIME type of the input image.
+ * @param apiKey The Google Gemini API key.
  * @returns A promise that resolves to an object with the base64 string and MIME type of the generated image.
  */
 export const generateImage = async (
     base64ImageData: string,
     prompt: string,
     mimeType: string,
-    hfToken: string
+    apiKey: string
 ): Promise<{ base64: string; mimeType: string }> => {
 
-    if (!hfToken) {
-        throw new Error("Hugging Face API token is missing.");
+    if (!apiKey) {
+        throw new Error("Google Gemini API key is missing.");
     }
 
-    const urlWithPrompt = `${API_URL}?prompt=${encodeURIComponent(prompt)}`;
-    
-    // Convert the base64 string from the app into a Blob to send as the request body.
-    const imageBlob = base64ToBlob(base64ImageData, mimeType);
-
     try {
-        const response = await fetch(urlWithPrompt, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${hfToken}`,
-                'Content-Type': mimeType,
+        const ai = new GoogleGenAI({ apiKey });
+        
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash-image',
+            contents: {
+                parts: [
+                    {
+                        inlineData: {
+                            data: base64ImageData,
+                            mimeType: mimeType,
+                        },
+                    },
+                    {
+                        text: prompt,
+                    },
+                ],
             },
-            body: imageBlob,
         });
-
-        if (response.status === 503) {
-            // The model is loading, which is common on the free tier.
-            const errorJson = await response.json();
-            const estimatedTime = errorJson.estimated_time || 20;
-            throw new Error(`The AI model is loading. Please try again in ~${Math.round(estimatedTime)} seconds.`);
+        
+        // Validate the response before accessing nested properties
+        if (!response.candidates || response.candidates.length === 0 || !response.candidates[0].content || !response.candidates[0].content.parts) {
+            // Log the full response for easier debugging
+            console.error("Invalid or empty response from Gemini API:", response);
+            // Check for a specific block reason to provide better user feedback
+            if (response.promptFeedback?.blockReason) {
+                throw new Error(`Request was blocked by the AI. Reason: ${response.promptFeedback.blockReason}. Please try a different image.`);
+            }
+            throw new Error("The AI returned an invalid response. This may be due to safety filters or an issue with the uploaded image. Please try a different one.");
         }
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error("Error from Hugging Face API:", errorText);
-            throw new Error(`Failed to generate image. The AI model returned an error.`);
+
+        // Find the image part in the response
+        for (const part of response.candidates[0].content.parts) {
+            if (part.inlineData) {
+                return {
+                    base64: part.inlineData.data,
+                    mimeType: part.inlineData.mimeType,
+                };
+            }
         }
         
-        // The API returns the generated image as a binary blob.
-        const resultBlob = await response.blob();
+        throw new Error("The AI did not return an image. It might have refused the request.");
 
-        // Convert the resulting blob back to a base64 string for the <img> tag.
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                const dataUrl = reader.result as string;
-                resolve({
-                    base64: dataUrl.split(',')[1],
-                    mimeType: resultBlob.type,
-                });
-            };
-            reader.onerror = reject;
-            reader.readAsDataURL(resultBlob);
-        });
-    } catch (error) {
-        console.error("Network request failed:", error);
-        throw new Error("The request failed. This might be due to a network issue, browser restrictions (like CORS), or an ad-blocker. Please check your browser's console for more details.");
+    } catch (error: any) {
+        console.error("Error from Gemini API:", error);
+        // Provide a more user-friendly error message
+        const message = error.message?.includes('API key not valid') 
+            ? 'Your Google Gemini API key is not valid. Please check it and try again.'
+            : `Failed to generate image. The AI model returned an error: ${error.message || 'Unknown error'}`;
+        throw new Error(message);
     }
 };
