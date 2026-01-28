@@ -1,9 +1,8 @@
 
-// FIX: Renamed fileToBase64 to blobToBase64 and changed the parameter type to Blob to be more generic and fix the import error.
-export const blobToBase64 = (blob: Blob): Promise<string> => {
+export const fileToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.readAsDataURL(blob);
+    reader.readAsDataURL(file);
     reader.onload = () => resolve(reader.result as string);
     reader.onerror = error => reject(error);
   });
