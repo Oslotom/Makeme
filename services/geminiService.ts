@@ -6,18 +6,18 @@ import { GoogleGenAI } from "@google/genai";
  * @param base64ImageData The raw base64 image data, without the 'data:image/...' prefix.
  * @param prompt The instruction for how to edit the image.
  * @param mimeType The MIME type of the input image.
- * @param apiKey The Google Gemini API key.
  * @returns A promise that resolves to an object with the base64 string and MIME type of the generated image.
  */
+// FIX: Refactored to use process.env.API_KEY instead of a passed argument, per Gemini API guidelines.
 export const generateImage = async (
     base64ImageData: string,
     prompt: string,
-    mimeType: string,
-    apiKey: string
+    mimeType: string
 ): Promise<{ base64: string; mimeType: string }> => {
 
+    const apiKey = process.env.API_KEY;
     if (!apiKey) {
-        throw new Error("Google Gemini API key is missing.");
+        throw new Error("Google Gemini API key is missing. Ensure the API_KEY environment variable is set.");
     }
 
     try {
