@@ -1,5 +1,5 @@
 
-import { HfInference } from "@huggingface/inference";
+import { HfInference } from "https://esm.sh/@huggingface/inference@^2.7.0";
 import { blobToBase64, base64ToArrayBuffer } from "../utils/fileUtils";
 
 const MODEL_NAME = "timbrooks/instruct-pix2pix";
