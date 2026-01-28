@@ -9,12 +9,14 @@ const MODEL_NAME = "timbrooks/instruct-pix2pix";
  * @param base64ImageData The raw base64 image data.
  * @param prompt The instruction for how to edit the image.
  * @param apiKey The user's Hugging Face API key.
+ * @param mimeType The MIME type of the original image (e.g., 'image/jpeg').
  * @returns A promise that resolves to an object with the base64 string and MIME type of the generated image.
  */
 export const generateImage = async (
     base64ImageData: string,
     prompt: string,
-    apiKey: string
+    apiKey: string,
+    mimeType: string
 ): Promise<{ base64: string; mimeType: string }> => {
 
     if (!apiKey) {
@@ -24,14 +26,19 @@ export const generateImage = async (
     try {
         const hf = new HfInference(apiKey);
         const imageArrayBuffer = base64ToArrayBuffer(base64ImageData);
+        const imageBlob = new Blob([imageArrayBuffer], { type: mimeType });
 
         const resultBlob = await hf.imageToImage({
             model: MODEL_NAME,
-            data: imageArrayBuffer,
+            data: imageBlob,
             parameters: {
                 prompt: prompt,
             }
         });
+
+        if (!resultBlob) {
+            throw new Error("The AI model returned an empty response. This might be a temporary issue.");
+        }
 
         const resultBase64Url = await blobToBase64(resultBlob);
         const [prefix, base64] = resultBase64Url.split(',');

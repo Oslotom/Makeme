@@ -60,8 +60,8 @@ export const Hero: React.FC<HeroProps> = ({ onGenerationComplete, apiKey }) => {
         setError(null);
 
         try {
-            const { data } = extractBase64Parts(uploadedImage);
-            const { base64: newImageBase64, mimeType: newMimeType } = await generateImage(data, selectedCategory.prompt, apiKey);
+            const { data, mimeType } = extractBase64Parts(uploadedImage);
+            const { base64: newImageBase64, mimeType: newMimeType } = await generateImage(data, selectedCategory.prompt, apiKey, mimeType);
             const newImageUrl = `data:${newMimeType};base64,${newImageBase64}`;
             
             onGenerationComplete({

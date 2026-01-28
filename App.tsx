@@ -38,8 +38,8 @@ const App: React.FC = () => {
 
         const newPrompt = `${basePrompt}, but with this change: "${modificationPrompt}"`;
 
-        const { data } = extractBase64Parts(resultData.originalUrl);
-        const { base64: newImageBase64, mimeType: newMimeType } = await generateImage(data, newPrompt, apiKey);
+        const { data, mimeType } = extractBase64Parts(resultData.originalUrl);
+        const { base64: newImageBase64, mimeType: newMimeType } = await generateImage(data, newPrompt, apiKey, mimeType);
         const newImageUrl = `data:${newMimeType};base64,${newImageBase64}`;
 
         setResultData(prev => ({
