@@ -11,11 +11,11 @@ export const ApiKeyInput: React.FC<ApiKeyInputProps> = ({ onKeySubmit }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (apiKey.trim().length > 10) { // Basic validation for API key format
+    if (apiKey.trim().startsWith('hf_')) {
       onKeySubmit(apiKey.trim());
       setError('');
     } else {
-      setError('Please enter a valid API key.');
+      setError('Please enter a valid Hugging Face API Token. It should start with "hf_".');
     }
   };
 
@@ -24,15 +24,15 @@ export const ApiKeyInput: React.FC<ApiKeyInputProps> = ({ onKeySubmit }) => {
       <div className="w-full max-w-md text-center">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">Enter Your API Key</h2>
         <p className="text-gray-600 mb-6">
-          To use this AI, please provide your Google Gemini API key. 
-          You can get one for free from{' '}
+          To use this AI, please provide your Hugging Face API Token. 
+          You can get one from the{' '}
           <a
-            href="https://aistudio.google.com/app/apikey"
+            href="https://huggingface.co/settings/tokens"
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-600 hover:underline"
           >
-            Google AI Studio
+            Hugging Face website
           </a>.
         </p>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -40,9 +40,9 @@ export const ApiKeyInput: React.FC<ApiKeyInputProps> = ({ onKeySubmit }) => {
             type="password"
             value={apiKey}
             onChange={(e) => setApiKey(e.target.value)}
-            placeholder="Enter your Google Gemini API key"
+            placeholder="Enter your Hugging Face Token (hf_...)"
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            aria-label="Google Gemini API Key"
+            aria-label="Hugging Face API Token"
           />
           {error && <p className="text-red-500 text-sm">{error}</p>}
           <button

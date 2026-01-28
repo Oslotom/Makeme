@@ -2,12 +2,13 @@
 import React, { useState, useCallback, useRef } from 'react';
 import type { GeneratedImage, CategoryOption } from '../types';
 import { CATEGORIES } from '../constants';
-import { generateImage } from '../services/geminiService';
+import { generateImage } from '../services/huggingFaceService';
 import { fileToBase64, extractBase64Parts } from '../utils/fileUtils';
 
 
 interface HeroProps {
   onGenerationComplete: (data: Omit<GeneratedImage, 'id'>) => void;
+  apiKey: string;
 }
 
 const LoadingSpinner = () => (
@@ -21,7 +22,7 @@ const LoadingSpinner = () => (
 );
 
 
-export const Hero: React.FC<HeroProps> = ({ onGenerationComplete }) => {
+export const Hero: React.FC<HeroProps> = ({ onGenerationComplete, apiKey }) => {
     const [uploadedImage, setUploadedImage] = useState<string | null>(null);
     const [fileName, setFileName] = useState<string | null>(null);
     const [selectedCategory, setSelectedCategory] = useState<CategoryOption | null>(null);
@@ -59,8 +60,8 @@ export const Hero: React.FC<HeroProps> = ({ onGenerationComplete }) => {
         setError(null);
 
         try {
-            const { mimeType, data } = extractBase64Parts(uploadedImage);
-            const { base64: newImageBase64, mimeType: newMimeType } = await generateImage(data, selectedCategory.prompt, mimeType);
+            const { data } = extractBase64Parts(uploadedImage);
+            const { base64: newImageBase64, mimeType: newMimeType } = await generateImage(data, selectedCategory.prompt, apiKey);
             const newImageUrl = `data:${newMimeType};base64,${newImageBase64}`;
             
             onGenerationComplete({
@@ -75,7 +76,7 @@ export const Hero: React.FC<HeroProps> = ({ onGenerationComplete }) => {
         } finally {
             setIsGenerating(false);
         }
-    }, [uploadedImage, selectedCategory, onGenerationComplete]);
+    }, [uploadedImage, selectedCategory, onGenerationComplete, apiKey]);
 
     return (
         <section id="create" className="text-center py-12 md:py-16 px-4">
