@@ -1,0 +1,5 @@
+{
+  "name": "Make Me Look Like",
+  "description": "An AI-powered web application that allows users to upload a photo of themselves and transform it into a new image based on a selected category like 'Really strong', 'A princess', or 'An animal'.",
+  "requestFramePermissions": []
+}

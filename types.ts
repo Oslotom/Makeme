@@ -1,0 +1,24 @@
+import type React from 'react';
+
+export enum Category {
+  Strong = 'Really strong',
+  Overweight = 'Overweight',
+  Princess = 'A princess',
+  Animal = 'An animal',
+  Rich = 'Rich',
+}
+
+export interface GeneratedImage {
+  id: string;
+  originalUrl: string;
+  generatedUrl: string;
+  category: Category;
+}
+
+export interface CategoryOption {
+  id: Category;
+  name: string;
+  // FIX: Use React.ReactNode to correctly type the icon property for JSX elements.
+  icon: React.ReactNode;
+  prompt: string;
+}
