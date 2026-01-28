@@ -1,3 +1,4 @@
+
 import type React from 'react';
 
 export enum Category {
@@ -6,12 +7,13 @@ export enum Category {
   Princess = 'A princess',
   Animal = 'An animal',
   Rich = 'Rich',
+  Headshot = 'Headshot',
 }
 
 export interface GeneratedImage {
   id: string;
   originalUrl: string;
-  generatedUrl: string;
+  generatedUrls: string[];
   category: Category;
 }
 
