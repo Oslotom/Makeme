@@ -1,4 +1,3 @@
-
 export const generateImage = async (
     imageFile: File | Blob,
     prompt: string
@@ -13,7 +12,9 @@ export const generateImage = async (
     const formData = new FormData();
     formData.append('init_image', imageFile);
     formData.append('init_image_mode', 'IMAGE_STRENGTH');
-    formData.append('image_strength', '0.6'); // A good balance between prompt and original image
+    // A lower image_strength (0-1) gives more weight to the original image, preserving features.
+    // We use 0.45 to ensure the user's face remains recognizable, which is key for this app.
+    formData.append('image_strength', '0.45'); 
     formData.append('text_prompts[0][text]', prompt);
     formData.append('cfg_scale', '7');
     formData.append('samples', '1');
