@@ -15,6 +15,15 @@
               secondary: '#fbbf24', // A warm amber
               accent: '#ec4899', // A vibrant pink
             },
+            animation: {
+              'fade-in': 'fadeIn 0.5s ease-in-out',
+            },
+            keyframes: {
+              fadeIn: {
+                '0%': { opacity: '0', transform: 'translateY(10px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              }
+            }
           },
         },
       }
@@ -30,7 +39,7 @@
 }
 </script>
 </head>
-  <body class="bg-gray-100">
+  <body class="bg-gradient-to-br from-indigo-50 via-white to-violet-100">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>

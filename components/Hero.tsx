@@ -10,25 +10,20 @@ interface HeroProps {
   onGenerationComplete: (data: Omit<GeneratedImage, 'id'>) => void;
 }
 
-const UploadIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-gray-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-    </svg>
-);
-
 const LoadingSpinner = () => (
     <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center rounded-lg z-10">
-        <svg className="animate-spin h-12 w-12 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <svg className="animate-spin h-12 w-12 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
-        <p className="text-lg text-gray-700 font-semibold mt-4">AI is creating your new look...</p>
+        <p className="text-lg text-slate-700 font-semibold mt-4">AI is creating your new look...</p>
     </div>
 );
 
 
 export const Hero: React.FC<HeroProps> = ({ onGenerationComplete }) => {
     const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+    const [fileName, setFileName] = useState<string | null>(null);
     const [selectedCategory, setSelectedCategory] = useState<CategoryOption | null>(null);
     const [isGenerating, setIsGenerating] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -39,11 +34,13 @@ export const Hero: React.FC<HeroProps> = ({ onGenerationComplete }) => {
         if (file) {
             try {
                 setError(null);
+                setFileName(file.name);
                 const base64 = await fileToBase64(file);
                 setUploadedImage(base64);
             } catch (err) {
                 setError('Could not read file. Please try another image.');
                 setUploadedImage(null);
+                setFileName(null);
             }
         }
     }, []);
@@ -85,22 +82,31 @@ export const Hero: React.FC<HeroProps> = ({ onGenerationComplete }) => {
 
     return (
         <section id="create" className="text-center py-12 md:py-16 px-4">
-            <h1 className="text-4xl md:text-6xl font-extrabold text-gray-900 mb-4 leading-tight">
+            <h1 className="text-5xl md:text-7xl font-extrabold text-slate-900 mb-4 leading-tight">
                 Unleash Your Alter Ego
             </h1>
-            <p className="max-w-3xl mx-auto text-lg md:text-xl text-gray-600 mb-8">
+            <p className="max-w-3xl mx-auto text-lg md:text-xl text-slate-600 mb-10">
                 Upload a photo, pick a style, and let our AI work its magic in seconds.
             </p>
 
-            <div className="relative max-w-4xl mx-auto bg-white/60 backdrop-blur-sm rounded-xl shadow-lg p-6 md:p-8">
+            <div className="relative max-w-xl mx-auto bg-white/30 backdrop-blur-xl rounded-2xl shadow-lg p-6 md:p-8 border border-white/20">
                 {isGenerating && <LoadingSpinner />}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                <div className="flex flex-col items-center gap-6">
                     
-                    {/* Image Upload */}
-                    <div 
-                      className="relative border-2 border-dashed border-gray-300 rounded-lg text-center cursor-pointer hover:border-blue-500 bg-gray-50 aspect-square flex flex-col justify-center items-center p-4"
-                      onClick={() => fileInputRef.current?.click()}
-                    >
+                    {/* Step 1: Upload */}
+                    <div className="w-full">
+                        <label className="text-lg font-semibold text-slate-800 text-left block mb-2">1. Upload Image</label>
+                        <div className="flex items-center border-2 border-slate-300/70 rounded-lg p-2 bg-white/50 w-full">
+                            <span className="text-slate-600 pl-2 text-sm flex-grow text-left truncate">
+                                {fileName || "No file selected..."}
+                            </span>
+                            <button
+                                onClick={() => fileInputRef.current?.click()}
+                                className="bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold py-2 px-4 rounded-md transition-colors text-sm flex-shrink-0"
+                            >
+                                Choose File
+                            </button>
+                        </div>
                         <input
                             type="file"
                             ref={fileInputRef}
@@ -108,45 +114,38 @@ export const Hero: React.FC<HeroProps> = ({ onGenerationComplete }) => {
                             accept="image/png, image/jpeg, image/webp"
                             className="hidden"
                         />
-                        {uploadedImage ? (
-                            <img src={uploadedImage} alt="Uploaded preview" className="w-full h-full object-cover rounded-md" />
-                        ) : (
-                            <>
-                                <UploadIcon/>
-                                <h3 className="text-base font-semibold text-gray-800">Upload Your Image</h3>
-                                <p className="text-xs text-gray-500">Click or drag & drop</p>
-                            </>
-                        )}
                     </div>
                     
-                    {/* Categories & Generate Button */}
-                    <div className="flex flex-col gap-4">
-                        <h3 className="text-lg font-semibold text-gray-800 text-left">1. Pick a Style</h3>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {/* Step 2: Categories */}
+                     <div className="w-full">
+                        <label className="text-lg font-semibold text-slate-800 text-left block mb-3">2. Pick a Style</label>
+                        <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
                             {CATEGORIES.map(cat => (
                                 <button 
                                     key={cat.id} 
                                     onClick={() => setSelectedCategory(cat)} 
-                                    className={`flex flex-col items-center p-3 rounded-lg border-2 transition-all duration-200 ${selectedCategory?.id === cat.id ? 'border-blue-500 bg-blue-50 scale-105' : 'border-gray-200 bg-white hover:border-blue-400'}`}
+                                    className={`group flex flex-col items-center justify-center gap-2 p-3 rounded-lg border-2 transition-all duration-200 aspect-square ${selectedCategory?.id === cat.id ? 'border-indigo-500 bg-indigo-50/80 scale-105 shadow-md' : 'border-slate-200/80 bg-white/70 hover:border-indigo-400'}`}
                                 >
                                     {cat.icon}
-                                    <span className="mt-1.5 text-xs text-center font-medium text-gray-700">{cat.name}</span>
+                                    <span className="text-xs text-center font-medium text-slate-700">{cat.name}</span>
                                 </button>
                             ))}
                         </div>
+                    </div>
 
-                        <h3 className="text-lg font-semibold text-gray-800 text-left mt-4">2. Create!</h3>
+                    {/* Step 3: Generate Button */}
+                    <div className="w-full pt-4">
                         <button
                             onClick={handleGenerateClick}
                             disabled={!uploadedImage || !selectedCategory || isGenerating}
-                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-lg text-lg transition-all transform hover:scale-105 shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed disabled:scale-100"
+                            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-4 px-8 rounded-lg text-lg transition-all transform hover:scale-105 shadow-lg disabled:from-slate-400 disabled:to-slate-400 disabled:cursor-not-allowed disabled:scale-100"
                         >
                             Generate Image
                         </button>
                     </div>
 
                 </div>
-                 {error && <p className="text-red-500 text-sm mt-4">{error}</p>}
+                 {error && <p className="text-red-600 bg-red-100/80 border border-red-300 rounded-md p-3 font-medium text-sm mt-4">{error}</p>}
             </div>
         </section>
     );
