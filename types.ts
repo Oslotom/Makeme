@@ -18,7 +18,7 @@ export interface GeneratedImage {
 export interface CategoryOption {
   id: Category;
   name: string;
-  // FIX: Use React.ReactNode to correctly type the icon property for JSX elements.
   icon: React.ReactNode;
   prompt: string;
+  suggestions: string[];
 }
