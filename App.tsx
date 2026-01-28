@@ -55,7 +55,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen font-sans text-slate-800">
-      <Header />
+      <Header onNavigateHome={handleReset} />
       <main className="container mx-auto px-4 py-8 md:py-12">
         {resultData ? (
           <ResultPage 

@@ -8,16 +8,17 @@ import { GoogleGenAI } from "@google/genai";
  * @param mimeType The MIME type of the input image.
  * @returns A promise that resolves to an object with the base64 string and MIME type of the generated image.
  */
-// FIX: Refactored to use process.env.API_KEY instead of a passed argument, per Gemini API guidelines.
 export const generateImage = async (
     base64ImageData: string,
     prompt: string,
     mimeType: string
 ): Promise<{ base64: string; mimeType: string }> => {
 
-    const apiKey = process.env.API_KEY;
+    // Safely access the API key to prevent crashing in browser environments.
+    const apiKey = (typeof process !== 'undefined' && process.env) ? process.env.API_KEY : undefined;
+
     if (!apiKey) {
-        throw new Error("Google Gemini API key is missing. Ensure the API_KEY environment variable is set.");
+        throw new Error("Google Gemini API key is missing. It must be provided via the API_KEY environment variable.");
     }
 
     try {
