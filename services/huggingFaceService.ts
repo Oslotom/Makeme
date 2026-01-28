@@ -1,6 +1,6 @@
 
 import { HfInference } from "https://esm.sh/@huggingface/inference@^2.7.0";
-import { blobToBase64, base64ToArrayBuffer } from "../utils/fileUtils";
+import { blobToBase64 } from "../utils/fileUtils";
 
 const MODEL_NAME = "timbrooks/instruct-pix2pix";
 
@@ -25,8 +25,11 @@ export const generateImage = async (
 
     try {
         const hf = new HfInference(apiKey);
-        const imageArrayBuffer = base64ToArrayBuffer(base64ImageData);
-        const imageBlob = new Blob([imageArrayBuffer], { type: mimeType });
+        
+        // Use the robust browser-native fetch API to convert the data URL to a Blob
+        const dataUrl = `data:${mimeType};base64,${base64ImageData}`;
+        const response = await fetch(dataUrl);
+        const imageBlob = await response.blob();
 
         const resultBlob = await hf.imageToImage({
             model: MODEL_NAME,
