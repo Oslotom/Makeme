@@ -3,14 +3,12 @@ import React, { useState } from 'react';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { ResultPage } from './components/ResultPage';
-import { ApiKeyInput } from './components/ApiKeyInput';
 import type { GeneratedImage } from './types';
 import { CATEGORIES } from './constants';
-import { generateImage } from './services/huggingFaceService';
+import { generateImage } from './services/geminiService';
 import { extractBase64Parts } from './utils/fileUtils';
 
 const App: React.FC = () => {
-  const [apiKey, setApiKey] = useState<string | null>(null);
   const [resultData, setResultData] = useState<Omit<GeneratedImage, 'id'> | null>(null);
   const [isModifying, setIsModifying] = useState(false);
   const [modificationError, setModificationError] = useState<string | null>(null);
@@ -25,7 +23,7 @@ const App: React.FC = () => {
   };
 
   const handleModification = async (modificationPrompt: string) => {
-    if (!resultData || !apiKey) return;
+    if (!resultData) return;
     
     setIsModifying(true);
     setModificationError(null);
@@ -36,10 +34,11 @@ const App: React.FC = () => {
             throw new Error("Could not find the original prompt for the selected category.");
         }
 
-        const newPrompt = `${basePrompt}, but with this change: "${modificationPrompt}"`;
+        // Construct the new prompt by combining the original transformation idea with the new modification request.
+        const newPrompt = `The person has been transformed based on the idea: "${basePrompt}". Now, apply this additional modification: "${modificationPrompt}". It's very important to keep the person's original facial features recognizable from the very first uploaded image.`;
 
-        const { data, mimeType } = extractBase64Parts(resultData.originalUrl);
-        const { base64: newImageBase64, mimeType: newMimeType } = await generateImage(data, newPrompt, apiKey, mimeType);
+        const { mimeType, data } = extractBase64Parts(resultData.originalUrl);
+        const { base64: newImageBase64, mimeType: newMimeType } = await generateImage(data, newPrompt, mimeType);
         const newImageUrl = `data:${newMimeType};base64,${newImageBase64}`;
 
         setResultData(prev => ({
@@ -54,33 +53,23 @@ const App: React.FC = () => {
     }
   };
 
-  const MainContent = () => {
-    if (!apiKey) {
-      return <ApiKeyInput onKeySubmit={setApiKey} />;
-    }
-    
-    if (resultData) {
-      return (
-        <ResultPage 
-          originalUrl={resultData.originalUrl}
-          generatedUrl={resultData.generatedUrl}
-          category={resultData.category}
-          onReset={handleReset}
-          onModify={handleModification}
-          isModifying={isModifying}
-          modificationError={modificationError}
-        />
-      );
-    }
-
-    return <Hero onGenerationComplete={handleGenerationComplete} apiKey={apiKey} />;
-  }
-
   return (
     <div className="min-h-screen font-sans text-slate-800">
       <Header />
       <main className="container mx-auto px-4 py-8 md:py-12">
-        <MainContent />
+        {resultData ? (
+          <ResultPage 
+            originalUrl={resultData.originalUrl}
+            generatedUrl={resultData.generatedUrl}
+            category={resultData.category}
+            onReset={handleReset}
+            onModify={handleModification}
+            isModifying={isModifying}
+            modificationError={modificationError}
+          />
+        ) : (
+          <Hero onGenerationComplete={handleGenerationComplete} />
+        )}
       </main>
       <footer className="text-center p-6 text-slate-500 text-sm">
         <p>&copy; {new Date().getFullYear()} MakeMeLookLike.com. All rights reserved.</p>

@@ -2,13 +2,12 @@
 import React, { useState, useCallback, useRef } from 'react';
 import type { GeneratedImage, CategoryOption } from '../types';
 import { CATEGORIES } from '../constants';
-import { generateImage } from '../services/huggingFaceService';
+import { generateImage } from '../services/geminiService';
 import { fileToBase64, extractBase64Parts } from '../utils/fileUtils';
 
 
 interface HeroProps {
   onGenerationComplete: (data: Omit<GeneratedImage, 'id'>) => void;
-  apiKey: string;
 }
 
 const LoadingSpinner = () => (
@@ -22,7 +21,7 @@ const LoadingSpinner = () => (
 );
 
 
-export const Hero: React.FC<HeroProps> = ({ onGenerationComplete, apiKey }) => {
+export const Hero: React.FC<HeroProps> = ({ onGenerationComplete }) => {
     const [uploadedImage, setUploadedImage] = useState<string | null>(null);
     const [fileName, setFileName] = useState<string | null>(null);
     const [selectedCategory, setSelectedCategory] = useState<CategoryOption | null>(null);
@@ -60,8 +59,8 @@ export const Hero: React.FC<HeroProps> = ({ onGenerationComplete, apiKey }) => {
         setError(null);
 
         try {
-            const { data, mimeType } = extractBase64Parts(uploadedImage);
-            const { base64: newImageBase64, mimeType: newMimeType } = await generateImage(data, selectedCategory.prompt, apiKey, mimeType);
+            const { mimeType, data } = extractBase64Parts(uploadedImage);
+            const { base64: newImageBase64, mimeType: newMimeType } = await generateImage(data, selectedCategory.prompt, mimeType);
             const newImageUrl = `data:${newMimeType};base64,${newImageBase64}`;
             
             onGenerationComplete({
@@ -76,7 +75,7 @@ export const Hero: React.FC<HeroProps> = ({ onGenerationComplete, apiKey }) => {
         } finally {
             setIsGenerating(false);
         }
-    }, [uploadedImage, selectedCategory, onGenerationComplete, apiKey]);
+    }, [uploadedImage, selectedCategory, onGenerationComplete]);
 
     return (
         <section id="create" className="text-center py-12 md:py-16 px-4">
