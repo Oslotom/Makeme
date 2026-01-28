@@ -1,11 +1,8 @@
-
 import React, { useState, useCallback, useRef } from 'react';
 import type { GeneratedImage, CategoryOption } from '../types';
 import { Category } from '../types';
 import { CATEGORIES } from '../constants';
 import { generateImage } from '../services/imageService';
-import { blobToBase64 } from '../utils/fileUtils';
-
 
 interface HeroProps {
   onGenerationComplete: (data: Omit<GeneratedImage, 'id'>) => void;
@@ -30,20 +27,45 @@ export const Hero: React.FC<HeroProps> = ({ onGenerationComplete }) => {
     const [error, setError] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const handleFileChange = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
-            try {
-                setError(null);
-                setSelectedCategory(null); // Reset category on new image upload
-                setUploadedFile(file);
-                const base64 = await blobToBase64(file);
-                setUploadedImage(base64);
-            } catch (err) {
+            setError(null);
+            setSelectedCategory(null);
+            setUploadedImage(null);
+            setUploadedFile(null);
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const imageUrl = e.target?.result as string;
+                const img = new Image();
+                img.onload = () => {
+                    const minPixels = 262144; // 512x512
+                    if (img.width * img.height < minPixels) {
+                        setError(`Image is too small. Please upload an image that is at least 512x512 pixels.`);
+                        setUploadedImage(null);
+                        setUploadedFile(null);
+                        if (fileInputRef.current) {
+                            fileInputRef.current.value = ""; // Reset file input to allow re-uploading the same file name
+                        }
+                    } else {
+                        setUploadedFile(file);
+                        setUploadedImage(imageUrl);
+                    }
+                };
+                img.onerror = () => {
+                    setError('Could not validate the image file. Please try another one.');
+                    setUploadedImage(null);
+                    setUploadedFile(null);
+                };
+                img.src = imageUrl;
+            };
+            reader.onerror = () => {
                 setError('Could not read file. Please try another image.');
                 setUploadedImage(null);
                 setUploadedFile(null);
-            }
+            };
+            reader.readAsDataURL(file);
         }
     }, []);
 
