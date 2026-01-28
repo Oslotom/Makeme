@@ -3,11 +3,13 @@ import React, { useState, useCallback, useRef } from 'react';
 import type { GeneratedImage, CategoryOption } from '../types';
 import { CATEGORIES } from '../constants';
 import { generateImage } from '../services/geminiService';
-import { fileToBase64, extractBase64Parts } from '../utils/fileUtils';
+// FIX: import blobToBase64 instead of fileToBase64 to align with the utility file update.
+import { blobToBase64 } from '../utils/fileUtils';
 
 
 interface HeroProps {
   onGenerationComplete: (data: Omit<GeneratedImage, 'id'>) => void;
+  // FIX: apiKey is no longer needed as it's handled by environment variables within the service.
 }
 
 const LoadingSpinner = () => (
@@ -23,6 +25,7 @@ const LoadingSpinner = () => (
 
 export const Hero: React.FC<HeroProps> = ({ onGenerationComplete }) => {
     const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+    const [uploadedFile, setUploadedFile] = useState<File | null>(null);
     const [fileName, setFileName] = useState<string | null>(null);
     const [selectedCategory, setSelectedCategory] = useState<CategoryOption | null>(null);
     const [isGenerating, setIsGenerating] = useState(false);
@@ -35,11 +38,14 @@ export const Hero: React.FC<HeroProps> = ({ onGenerationComplete }) => {
             try {
                 setError(null);
                 setFileName(file.name);
-                const base64 = await fileToBase64(file);
+                setUploadedFile(file);
+                // FIX: use blobToBase64 utility function.
+                const base64 = await blobToBase64(file);
                 setUploadedImage(base64);
             } catch (err) {
                 setError('Could not read file. Please try another image.');
                 setUploadedImage(null);
+                setUploadedFile(null);
                 setFileName(null);
             }
         }
@@ -50,7 +56,7 @@ export const Hero: React.FC<HeroProps> = ({ onGenerationComplete }) => {
             setError('You must select a style before generating.');
             return;
         }
-        if (!uploadedImage) {
+        if (!uploadedFile) {
             setError('Please upload an image to generate.');
             return;
         }
@@ -59,12 +65,12 @@ export const Hero: React.FC<HeroProps> = ({ onGenerationComplete }) => {
         setError(null);
 
         try {
-            const { mimeType, data } = extractBase64Parts(uploadedImage);
-            const { base64: newImageBase64, mimeType: newMimeType } = await generateImage(data, selectedCategory.prompt, mimeType);
+            // FIX: apiKey is no longer passed to generateImage.
+            const { base64: newImageBase64, mimeType: newMimeType } = await generateImage(uploadedFile, selectedCategory.prompt);
             const newImageUrl = `data:${newMimeType};base64,${newImageBase64}`;
             
             onGenerationComplete({
-                originalUrl: uploadedImage,
+                originalUrl: uploadedImage!,
                 generatedUrl: newImageUrl,
                 category: selectedCategory.id,
             });
@@ -75,7 +81,8 @@ export const Hero: React.FC<HeroProps> = ({ onGenerationComplete }) => {
         } finally {
             setIsGenerating(false);
         }
-    }, [uploadedImage, selectedCategory, onGenerationComplete]);
+    // FIX: apiKey removed from dependency array.
+    }, [uploadedImage, uploadedFile, selectedCategory, onGenerationComplete]);
 
     return (
         <section id="create" className="text-center py-12 md:py-16 px-4">
@@ -130,7 +137,7 @@ export const Hero: React.FC<HeroProps> = ({ onGenerationComplete }) => {
                             </button>
                             <button
                                 onClick={handleGenerateClick}
-                                disabled={!uploadedImage || !selectedCategory || isGenerating}
+                                disabled={!uploadedFile || !selectedCategory || isGenerating}
                                 className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-2 px-5 rounded-md text-sm transition-all transform hover:scale-105 shadow-md disabled:from-slate-400 disabled:to-slate-400 disabled:cursor-not-allowed disabled:scale-100 disabled:shadow-none"
                             >
                                 Generate

@@ -1,29 +1,28 @@
 
+// FIX: This service is updated to use the Google Gemini API instead of Hugging Face.
 import { GoogleGenAI } from "@google/genai";
+import { blobToBase64, extractBase64Parts } from "../utils/fileUtils";
 
 /**
- * Generates an image by calling the Google Gemini API.
- * @param base64ImageData The raw base64 image data, without the 'data:image/...' prefix.
+ * Generates an image by calling the Gemini API for image editing.
+ * @param imageFile The image as a `File` or `Blob` object.
  * @param prompt The instruction for how to edit the image.
- * @param mimeType The MIME type of the input image.
  * @returns A promise that resolves to an object with the base64 string and MIME type of the generated image.
  */
 export const generateImage = async (
-    base64ImageData: string,
+    imageFile: File | Blob,
     prompt: string,
-    mimeType: string
 ): Promise<{ base64: string; mimeType: string }> => {
 
-    // Safely access the API key to prevent crashing in browser environments.
-    const apiKey = (typeof process !== 'undefined' && process.env) ? process.env.API_KEY : undefined;
-
-    if (!apiKey) {
-        throw new Error("Google Gemini API key is missing. It must be provided via the API_KEY environment variable.");
+    if (!process.env.API_KEY) {
+        throw new Error("Google AI API key is not configured. Please set the API_KEY environment variable.");
     }
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    
+    const base64Url = await blobToBase64(imageFile);
+    const { mimeType, data: base64ImageData } = extractBase64Parts(base64Url);
 
     try {
-        const ai = new GoogleGenAI({ apiKey });
-        
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash-image',
             contents: {
@@ -40,20 +39,8 @@ export const generateImage = async (
                 ],
             },
         });
-        
-        // Validate the response before accessing nested properties
-        if (!response.candidates || response.candidates.length === 0 || !response.candidates[0].content || !response.candidates[0].content.parts) {
-            // Log the full response for easier debugging
-            console.error("Invalid or empty response from Gemini API:", response);
-            // Check for a specific block reason to provide better user feedback
-            if (response.promptFeedback?.blockReason) {
-                throw new Error(`Request was blocked by the AI. Reason: ${response.promptFeedback.blockReason}. Please try a different image.`);
-            }
-            throw new Error("The AI returned an invalid response. This may be due to safety filters or an issue with the uploaded image. Please try a different one.");
-        }
 
-
-        // Find the image part in the response
+        // The output response may contain both image and text parts; you must iterate through all parts to find the image part.
         for (const part of response.candidates[0].content.parts) {
             if (part.inlineData) {
                 return {
@@ -63,14 +50,26 @@ export const generateImage = async (
             }
         }
         
-        throw new Error("The AI did not return an image. It might have refused the request.");
+        if (response.text) {
+            throw new Error(`The AI model responded with text instead of an image: "${response.text}"`);
+        }
+        
+        throw new Error("The AI model did not return an image. The response was empty or in an unexpected format.");
 
     } catch (error: any) {
-        console.error("Error from Gemini API:", error);
-        // Provide a more user-friendly error message
-        const message = error.message?.includes('API key not valid') 
-            ? 'Your Google Gemini API key is not valid. Please check it and try again.'
-            : `Failed to generate image. The AI model returned an error: ${error.message || 'Unknown error'}`;
-        throw new Error(message);
+        console.error("Full error object from Gemini API:", error);
+        
+        let detailedMessage = error.message || "An unknown error occurred.";
+
+        // Provide more user-friendly error messages for common cases.
+        if (detailedMessage.includes("API key not valid")) {
+            detailedMessage = "Authentication failed. Please ensure your Google AI API key is correct and has billing enabled.";
+        } else if (detailedMessage.includes("429")) { // Quota exceeded
+             detailedMessage = "You have exceeded your API request quota. Please check your usage limits and billing status.";
+        } else if (error.message.includes("Failed to fetch")) {
+             detailedMessage = "A network error occurred. This could be due to a CORS issue, an internet connection problem, or a browser extension blocking the request. Check the browser's developer console for more details.";
+        }
+        
+        throw new Error(`Failed to generate image: ${detailedMessage}`);
     }
 };
