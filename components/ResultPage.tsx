@@ -9,7 +9,7 @@ const ModifyingSpinner = () => (
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
-        <p className="text-md text-slate-300 font-semibold mt-3">Updating image...</p>
+        <p className="text-md text-slate-300 font-semibold mt-3">Updating images...</p>
     </div>
 );
 
@@ -34,7 +34,10 @@ export const ResultPage: React.FC<ResultPageProps> = ({
 }) => {
   const [customPrompt, setCustomPrompt] = useState('');
   const [mainImageUrl, setMainImageUrl] = useState(generatedUrls[0]);
-  const suggestions = CATEGORIES.find(c => c.id === category)?.suggestions || [];
+  
+  const suggestions = category === Category.Custom 
+    ? [] 
+    : CATEGORIES.find(c => c.id === category)?.suggestions || [];
   
   const handleCustomPromptSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,18 +101,20 @@ export const ResultPage: React.FC<ResultPageProps> = ({
             <div className="mt-8 pt-6 border-t border-slate-700">
                 <h4 className="text-center text-lg font-semibold text-slate-300 mb-4">Refine Your Image</h4>
                 
-                <div className="flex flex-wrap justify-center items-center gap-3">
-                    {suggestions.map((suggestion, index) => (
-                        <button 
-                            key={index}
-                            onClick={() => onModify(suggestion)} 
-                            disabled={isModifying}
-                            className="bg-slate-700/70 hover:bg-slate-700 text-slate-200 font-semibold py-2 px-4 rounded-full text-sm transition border border-slate-600 shadow-sm disabled:opacity-50 disabled:cursor-wait"
-                        >
-                           ✨ {suggestion}
-                        </button>
-                    ))}
-                </div>
+                {suggestions.length > 0 && (
+                    <div className="flex flex-wrap justify-center items-center gap-3">
+                        {suggestions.map((suggestion, index) => (
+                            <button 
+                                key={index}
+                                onClick={() => onModify(suggestion)} 
+                                disabled={isModifying}
+                                className="bg-slate-700/70 hover:bg-slate-700 text-slate-200 font-semibold py-2 px-4 rounded-full text-sm transition border border-slate-600 shadow-sm disabled:opacity-50 disabled:cursor-wait"
+                            >
+                               ✨ {suggestion}
+                            </button>
+                        ))}
+                    </div>
+                )}
 
                 <form onSubmit={handleCustomPromptSubmit} className="mt-6 max-w-lg mx-auto flex items-center gap-2">
                     <input 

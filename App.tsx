@@ -1,11 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { ResultPage } from './components/ResultPage';
-import type { GeneratedImage, Category } from './types';
+import type { GeneratedImage } from './types';
+import { Category } from './types';
 import { CATEGORIES } from './constants';
-import { generateImage } from './services/imageService';
+import { generateImage } from './services/geminiService';
 import { extractBase64Parts, base64ToBlob } from './utils/fileUtils';
 
 const App: React.FC = () => {
@@ -29,19 +30,25 @@ const App: React.FC = () => {
     setModificationError(null);
 
     try {
-        const basePrompt = CATEGORIES.find(c => c.id === resultData.category)?.prompt;
-        if (!basePrompt) {
-            throw new Error("Could not find the original prompt for the selected category.");
+        let promptContext: string;
+        if (resultData.category === Category.Custom) {
+            promptContext = "The person in the photo was transformed based on a custom description.";
+        } else {
+            const categoryData = CATEGORIES.find(c => c.id === resultData.category);
+            if (!categoryData) {
+                throw new Error("Could not find the data for the original generation category.");
+            }
+            promptContext = `The person in the photo was transformed based on the instruction: "${categoryData.prompt}".`;
         }
 
-        const newPrompt = `The person has been transformed based on the idea: "${basePrompt}". Now, apply this additional modification: "${modificationPrompt}". It's very important to keep the person's original facial features recognizable from the very first uploaded image.`;
+        const newPrompt = `${promptContext} Now, apply this additional modification: "${modificationPrompt}". CRITICAL INSTRUCTION: Adhere strictly to the facial features from the original uploaded photo. The person's face, including structure, features, skin tone, and expression, must not be altered and must remain 100% recognizable from the original photo.`;
 
         const { mimeType, data } = extractBase64Parts(resultData.originalUrl);
         const imageBlob = base64ToBlob(data, mimeType);
         
         let newImageUrls: string[] = [];
-        const isHeadshot = resultData.category === 'Headshot';
-
+        const isHeadshot = resultData.category === Category.Headshot;
+        
         if (isHeadshot) {
             const promptVariations = [
                 ' with soft, natural lighting',
@@ -58,7 +65,7 @@ const App: React.FC = () => {
             const { base64, mimeType } = await generateImage(imageBlob, newPrompt);
             newImageUrls.push(`data:${mimeType};base64,${base64}`);
         }
-
+        
         setResultData(prev => ({
             ...prev!,
             generatedUrls: newImageUrls,
@@ -86,7 +93,9 @@ const App: React.FC = () => {
             modificationError={modificationError}
           />
         ) : (
-          <Hero onGenerationComplete={handleGenerationComplete} />
+          <Hero 
+            onGenerationComplete={handleGenerationComplete} 
+          />
         )}
       </main>
       <footer className="text-center p-6 text-slate-500 text-sm">

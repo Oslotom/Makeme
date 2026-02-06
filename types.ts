@@ -8,6 +8,7 @@ export enum Category {
   Animal = 'An animal',
   Rich = 'Rich',
   Headshot = 'Headshot',
+  Custom = 'Custom',
 }
 
 export interface GeneratedImage {
